@@ -67,6 +67,66 @@ function draw() {
 
     if (singlePose) {
         // ... (previous code) ...
+        let capture;
+let posenet;
+let singlePose, skeleton;
+let actor_img;
+let specs, smoke;
+
+function setup() {
+    createCanvas(800, 500);
+    capture = createCapture(VIDEO)
+    capture.hide();
+
+    posenet = ml5.poseNet(capture, modelLoaded);
+    posenet.on('pose', receivedPoses);
+
+    actor_img = loadImage('images/shahrukh.png');
+    specs = loadImage('images/spects.png');
+    smoke = loadImage('images/cigar.png');
+}
+
+function receivedPoses(poses) {
+    if (poses.length > 0) {
+        singlePose = poses[0].pose;
+        skeleton = poses[0].skeleton;
+    }
+}
+
+function modelLoaded() {
+    console.log('Model has loaded');
+}
+
+function draw() {
+    // Display video feed
+    image(capture, 0, 0);
+
+    if (singlePose) {
+        // Iterate through keypoints and draw circles
+        for (let i = 0; i < singlePose.keypoints.length; i++) {
+            const keypoint = singlePose.keypoints[i];
+            if (keypoint.score > 0.2) { // Filter keypoints with low confidence
+                fill(255, 0, 0);
+                ellipse(keypoint.position.x, keypoint.position.y, 20);
+            }
+        }
+
+        // Draw skeleton lines
+        stroke(255, 255, 255);
+        strokeWeight(5);
+        for (let j = 0; j < skeleton.length; j++) {
+            const start = skeleton[j][0].position;
+            const end = skeleton[j][1].position;
+            line(start.x, start.y, end.x, end.y);
+        }
+
+        // Display images on specific keypoints (e.g., nose)
+        if (singlePose.keypoints[0].score > 0.2) { // Check if nose keypoint is detected
+            image(specs, singlePose.keypoints[0].position.x - 35, singlePose.keypoints[0].position.y - 50, 80, 80);
+            image(smoke, singlePose.keypoints[0].position.x - 35, singlePose.keypoints[0].position.y + 10, 40, 40);
+        }
+    }
+}
 
         // Detect slouching based on keypoint positions
         const leftShoulder = singlePose.keypoints[5];
