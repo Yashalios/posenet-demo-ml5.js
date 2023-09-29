@@ -5,7 +5,7 @@ let actor_img;
 let specs, smoke;
 
 function setup() {
-    createCanvas(1100, 800);
+    createCanvas(800, 500);
     capture = createCapture(VIDEO)
     capture.hide();
 
@@ -59,6 +59,42 @@ function draw() {
     }
 }
 
+// ... (previous code) ...
+
+function draw() {
+    // Display video feed
+    image(capture, 0, 0);
+
+    if (singlePose) {
+        // ... (previous code) ...
+
+        // Detect slouching based on keypoint positions
+        const leftShoulder = singlePose.keypoints[5];
+        const rightShoulder = singlePose.keypoints[2];
+        const nose = singlePose.keypoints[0];
+        const leftHip = singlePose.keypoints[11];
+        const rightHip = singlePose.keypoints[12];
+
+        if (leftShoulder && rightShoulder && nose && leftHip && rightHip) {
+            const shoulderDistance = dist(leftShoulder.position.x, leftShoulder.position.y, rightShoulder.position.x, rightShoulder.position.y);
+            const hipDistance = dist(leftHip.position.x, leftHip.position.y, rightHip.position.x, rightHip.position.y);
+            const noseToHipDistance = dist(nose.position.x, nose.position.y, (leftHip.position.x + rightHip.position.x) / 2, (leftHip.position.y + rightHip.position.y) / 2);
+
+            // Calculate the angle formed by the shoulders and hips
+            const angle = atan2(shoulderDistance - hipDistance, noseToHipDistance);
+
+            // Define a threshold angle for slouching detection
+            const slouchThreshold = radians(20); // You can adjust this value
+
+            // Check if the person is slouching
+            if (angle > slouchThreshold) {
+                fill(255, 0, 0);
+                textSize(24);
+                text("Slouching Detected", 20, 50);
+            }
+        }
+    }
+}
 
 
 
